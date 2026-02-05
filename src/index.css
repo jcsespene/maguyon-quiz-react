@@ -88,6 +88,13 @@ h3 {
   color: var(--text-primary);
 }
 
+/* Option text - same size as question text */
+.option-text {
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -322,6 +329,10 @@ body:has(.results-screen) .main-card {
   }
 
   .question-text {
+    font-size: 15px;
+  }
+
+  .option-text {
     font-size: 15px;
   }
 

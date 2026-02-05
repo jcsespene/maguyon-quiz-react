@@ -77,7 +77,7 @@ export function StatementAB({ question, value, onChange, showCalculator }: State
             onClick={() => onChange(option.value)}
             className={cn('option-card', value && arraysEqual(value, option.value) && 'selected')}
           >
-            <span className="text-[var(--text-primary)] text-[17px]">{option.label}</span>
+            <span className="option-text">{option.label}</span>
           </li>
         ))}
       </ul>
