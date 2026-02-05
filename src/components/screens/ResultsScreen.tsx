@@ -26,12 +26,12 @@ export function ResultsScreen({
   return (
     <div className="results-screen flex flex-col w-full max-w-2xl mx-auto">
       {/* Header */}
-      <h1 style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px' }}>
+      <h1 className="mobile-title" style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px' }}>
         Results
       </h1>
 
       {/* Stats Row */}
-      <div style={{
+      <div className="results-stats-row" style={{
         display: 'flex',
         alignItems: 'center',
         gap: '48px',
@@ -41,13 +41,13 @@ export function ResultsScreen({
         flexShrink: 0,
       }}>
         {/* Circular Progress */}
-        <div style={{ flexShrink: 0 }}>
+        <div className="mobile-progress" style={{ flexShrink: 0 }}>
           <CircularProgress percent={percent} size={120} strokeWidth={8} />
         </div>
 
         {/* Points */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+          <div className="mobile-stat-value" style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
             {results.points}
           </div>
           <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
@@ -57,7 +57,7 @@ export function ResultsScreen({
 
         {/* Time */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+          <div className="mobile-stat-value" style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
             {formatTime(results.timeElapsed)}
           </div>
           <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
@@ -67,7 +67,7 @@ export function ResultsScreen({
       </div>
 
       {/* Action Section */}
-      <div style={{
+      <div className="results-action-section" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -172,12 +172,12 @@ export function ResultsScreen({
                     {/* Answer Display */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {/* You Answered */}
-                      <div style={{
+                      <div className="results-answer-row" style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px',
                       }}>
-                        <span style={{
+                        <span className="results-answer-label" style={{
                           padding: '6px 12px',
                           background: detail.isCorrect ? '#22c55e' : '#ef4444',
                           color: 'white',
@@ -204,12 +204,12 @@ export function ResultsScreen({
 
                       {/* Correct Answer (only show if incorrect) */}
                       {!detail.isCorrect && (
-                        <div style={{
+                        <div className="results-answer-row" style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
                         }}>
-                          <span style={{
+                          <span className="results-answer-label" style={{
                             padding: '6px 12px',
                             background: 'var(--bg-tertiary)',
                             color: 'var(--text-primary)',

@@ -306,3 +306,59 @@ body:has(.results-screen) .main-card {
   font-weight: 300;
   margin-left: 2px;
 }
+
+/* =============================================
+   MOBILE RESPONSIVE OVERRIDES
+   These rules ONLY apply on screens < 640px
+   Desktop styles remain completely unchanged
+   ============================================= */
+@media (max-width: 640px) {
+  body {
+    padding: 16px;
+  }
+
+  /* Results page - stack stats vertically */
+  .results-stats-row {
+    flex-direction: column !important;
+    gap: 24px !important;
+    align-items: center !important;
+    text-align: center;
+  }
+
+  /* Results page - stack action section */
+  .results-action-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  .results-action-section button {
+    justify-content: center;
+  }
+
+  /* Results page - stack answer rows */
+  .results-answer-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .results-answer-label {
+    min-width: auto !important;
+  }
+
+  /* Smaller title on mobile */
+  .mobile-title {
+    font-size: 24px !important;
+  }
+
+  /* Smaller stat values on mobile */
+  .mobile-stat-value {
+    font-size: 28px !important;
+  }
+
+  /* Smaller circular progress on mobile */
+  .mobile-progress {
+    transform: scale(0.75);
+  }
+}
