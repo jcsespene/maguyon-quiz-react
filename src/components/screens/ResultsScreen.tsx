@@ -24,51 +24,75 @@ export function ResultsScreen({
   };
 
   return (
-    <div className="results-screen flex flex-col w-full max-w-2xl mx-auto px-4 sm:px-0">
+    <div className="results-screen flex flex-col w-full max-w-2xl mx-auto">
       {/* Header */}
-      <h1 className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)] mb-2">
+      <h1 style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px' }}>
         Results
       </h1>
 
       {/* Stats Row */}
-      <div className="flex flex-col sm:flex-row sm:flex-wrap items-center sm:items-center gap-6 sm:gap-12 py-6 sm:py-8 border-b border-[var(--border-color)]">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '48px',
+        padding: '32px 0',
+        borderBottom: '1px solid var(--border-color)',
+        minHeight: '120px',
+        flexShrink: 0,
+      }}>
         {/* Circular Progress */}
-        <div className="flex-shrink-0">
-          <CircularProgress percent={percent} size={80} strokeWidth={6} />
+        <div style={{ flexShrink: 0 }}>
+          <CircularProgress percent={percent} size={120} strokeWidth={8} />
         </div>
 
-        {/* Points and Time - side by side on mobile */}
-        <div className="flex gap-8 sm:gap-12">
-          {/* Points */}
-          <div className="text-center sm:text-left">
-            <div className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)]">
-              {results.points}
-            </div>
-            <div className="text-xs sm:text-sm text-[var(--text-muted)]">
-              Out of {results.totalPoints} pts
-            </div>
+        {/* Points */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+            {results.points}
           </div>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            Out of {results.totalPoints} points
+          </div>
+        </div>
 
-          {/* Time */}
-          <div className="text-center sm:text-left">
-            <div className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)]">
-              {formatTime(results.timeElapsed)}
-            </div>
-            <div className="text-xs sm:text-sm text-[var(--text-muted)]">
-              Time taken
-            </div>
+        {/* Time */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+            {formatTime(results.timeElapsed)}
+          </div>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            Time for this attempt
           </div>
         </div>
       </div>
 
       {/* Action Section */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-6 border-b border-[var(--border-color)]">
-        <span className="text-sm text-[var(--text-primary)]">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '24px',
+        padding: '24px 0',
+        borderBottom: '1px solid var(--border-color)',
+        flexShrink: 0,
+      }}>
+        <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
           Each attempt gives you a fresh set of random questions.
         </span>
         <button
           onClick={tryAgain}
-          className="px-5 py-2.5 border-none bg-[var(--accent)] text-white text-sm cursor-pointer flex items-center gap-2 flex-shrink-0"
+          style={{
+            padding: '10px 20px',
+            border: 'none',
+            background: 'var(--accent)',
+            color: 'white',
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexShrink: 0,
+          }}
         >
           <RotateCcw className="w-4 h-4" />
           Try Again
@@ -76,86 +100,158 @@ export function ResultsScreen({
       </div>
 
       {/* Review Answers */}
-      <div className="py-6">
-        <h2 className="text-base sm:text-lg font-medium text-[var(--text-primary)] mb-6">
+      <div style={{ padding: '24px 0' }}>
+        <h2 style={{
+          fontSize: '18px',
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+          marginBottom: '24px',
+          fontFamily: "'TWK Lausanne', system-ui, -apple-system, sans-serif",
+        }}>
           Review Answers
         </h2>
 
-        <div className="flex flex-col">
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {results.details.map((detail, i) => (
-            <div
-              key={i}
-              className={i < results.details.length - 1 ? 'border-b border-[var(--border-color)] pb-5 mb-5' : ''}
-            >
-              {/* Question Header */}
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="text-sm sm:text-base font-medium text-[var(--text-primary)]">
-                    Q{i + 1}
-                  </span>
-                  {detail.isBonus && (
-                    <span className="px-2 py-0.5 bg-[var(--accent)] text-white text-[10px] sm:text-xs font-medium rounded uppercase">
-                      Bonus
-                    </span>
-                  )}
-                </div>
-                <span className={`text-xs sm:text-sm font-medium ${detail.isCorrect ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                  {detail.points}/2 pts
-                </span>
-              </div>
-
-              {/* Question Content */}
-              <div>
-                <div className="text-sm sm:text-[15px] text-[var(--text-primary)] mb-4 leading-relaxed">
-                  {detail.question.includes('\n') ? (
-                    detail.question.split('\n').map((line, idx) => (
-                      <div key={idx} className={idx < detail.question.split('\n').length - 1 ? 'mb-2' : ''}>
-                        <MathText>{line}</MathText>
-                      </div>
-                    ))
-                  ) : (
-                    <MathText>{detail.question}</MathText>
-                  )}
-                </div>
-
-                {/* Answer Display */}
-                <div className="flex flex-col gap-2">
-                  {/* You Answered */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <span
-                      className="px-2 py-1 rounded text-[10px] sm:text-xs font-semibold w-fit sm:min-w-[100px] text-center flex-shrink-0"
-                      style={{ background: detail.isCorrect ? '#22c55e' : '#ef4444', color: 'white' }}
-                    >
-                      {detail.isCorrect ? 'Correct!' : 'You Answered'}
-                    </span>
-                    <span className="px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs sm:text-sm text-[var(--text-primary)] break-words">
-                      <MathText>{detail.userAnswer || '(No answer)'}</MathText>
+                <div
+                  key={i}
+                  style={{
+                    borderBottom: i < results.details.length - 1 ? '1px solid var(--border-color)' : 'none',
+                    paddingBottom: i < results.details.length - 1 ? '24px' : '0',
+                    marginBottom: i < results.details.length - 1 ? '24px' : '0',
+                  }}
+                >
+                  {/* Question Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        Question {i + 1}
+                      </span>
+                      {detail.isBonus && (
+                        <span style={{
+                          padding: '3px 8px',
+                          background: 'var(--accent)',
+                          color: 'white',
+                          fontSize: '11px',
+                          fontWeight: 500,
+                          borderRadius: '3px',
+                          textTransform: 'uppercase',
+                        }}>
+                          Bonus
+                        </span>
+                      )}
+                    </div>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: detail.isCorrect ? '#22c55e' : '#ef4444',
+                    }}>
+                      {detail.points}/2 pts
                     </span>
                   </div>
 
-                  {/* Correct Answer (only show if incorrect) */}
-                  {!detail.isCorrect && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <span className="px-2 py-1 bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-[10px] sm:text-xs font-semibold rounded w-fit sm:min-w-[100px] text-center flex-shrink-0">
-                        Correct Answer
-                      </span>
-                      <span className="text-xs sm:text-sm text-[var(--text-primary)] break-words">
-                        <MathText>{detail.correctAnswer}</MathText>
-                      </span>
+                  {/* Question Content */}
+                  <div>
+                    <div style={{ fontSize: '15px', color: 'var(--text-primary)', marginBottom: '20px', lineHeight: '1.5' }}>
+                      {detail.question.includes('\n') ? (
+                        detail.question.split('\n').map((line, idx) => (
+                          <div key={idx} style={{ marginBottom: idx < detail.question.split('\n').length - 1 ? '8px' : 0 }}>
+                            <MathText>{line}</MathText>
+                          </div>
+                        ))
+                      ) : (
+                        <MathText>{detail.question}</MathText>
+                      )}
                     </div>
-                  )}
+
+                    {/* Answer Display */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {/* You Answered */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}>
+                        <span style={{
+                          padding: '6px 12px',
+                          background: detail.isCorrect ? '#22c55e' : '#ef4444',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          borderRadius: '4px',
+                          minWidth: '110px',
+                          textAlign: 'center',
+                        }}>
+                          {detail.isCorrect ? 'Correct!' : 'You Answered'}
+                        </span>
+                        <span style={{
+                          padding: '10px 16px',
+                          background: 'var(--bg-secondary)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          color: 'var(--text-primary)',
+                          flex: 1,
+                        }}>
+                          <MathText>{detail.userAnswer || '(No answer)'}</MathText>
+                        </span>
+                      </div>
+
+                      {/* Correct Answer (only show if incorrect) */}
+                      {!detail.isCorrect && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                        }}>
+                          <span style={{
+                            padding: '6px 12px',
+                            background: 'var(--bg-tertiary)',
+                            color: 'var(--text-primary)',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            minWidth: '110px',
+                            textAlign: 'center',
+                          }}>
+                            Correct Answer
+                          </span>
+                          <span style={{
+                            fontSize: '14px',
+                            color: 'var(--text-primary)',
+                          }}>
+                            <MathText>{detail.correctAnswer}</MathText>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))}
         </div>
       </div>
 
       {/* Back Button */}
-      <div className="pt-4 border-t border-[var(--border-color)]">
+      <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
         <button
           onClick={returnToStart}
-          className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm text-[var(--text-muted)] p-0 hover:text-[var(--text-secondary)]"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            color: 'var(--text-muted)',
+            padding: 0,
+          }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home

@@ -77,7 +77,7 @@ export function QuizScreen({
   }
 
   return (
-    <div className="flex flex-col w-full max-w-[600px] mx-auto px-4 sm:px-0">
+    <div className="flex flex-col w-[600px] max-w-full mx-auto">
       {/* Question Header */}
       <div className="flex justify-between items-center" style={{ paddingBottom: '24px' }}>
         <div className="flex items-center gap-3">

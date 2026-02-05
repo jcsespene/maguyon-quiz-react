@@ -67,7 +67,7 @@ export function MultipleChoice({ question, value, onChange, showCalculator }: Mu
               value === option.originalIndex && 'selected'
             )}
           >
-            <span className="option-text">
+            <span className="text-[var(--text-primary)] text-[17px]">
               <MathText>{option.text}</MathText>
             </span>
           </li>
