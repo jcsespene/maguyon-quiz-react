@@ -24,75 +24,48 @@ export function ResultsScreen({
   };
 
   return (
-    <div className="results-screen flex flex-col w-full max-w-2xl mx-auto">
+    <div className="results-screen flex flex-col w-full max-w-2xl mx-auto px-4 sm:px-0">
       {/* Header */}
-      <h1 style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px' }}>
+      <h1 className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)] mb-2">
         Results
       </h1>
 
       {/* Stats Row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '48px',
-        padding: '32px 0',
-        borderBottom: '1px solid var(--border-color)',
-        minHeight: '120px',
-        flexShrink: 0,
-      }}>
+      <div className="flex flex-wrap items-center gap-6 sm:gap-12 py-6 sm:py-8 border-b border-[var(--border-color)]">
         {/* Circular Progress */}
-        <div style={{ flexShrink: 0 }}>
-          <CircularProgress percent={percent} size={120} strokeWidth={8} />
+        <div className="flex-shrink-0">
+          <CircularProgress percent={percent} size={100} strokeWidth={8} />
         </div>
 
         {/* Points */}
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+        <div className="flex-shrink-0">
+          <div className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)]">
             {results.points}
           </div>
-          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+          <div className="text-xs sm:text-sm text-[var(--text-muted)]">
             Out of {results.totalPoints} points
           </div>
         </div>
 
         {/* Time */}
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: '36px', fontWeight: 500, color: 'var(--text-primary)' }}>
+        <div className="flex-shrink-0">
+          <div className="text-2xl sm:text-4xl font-medium text-[var(--text-primary)]">
             {formatTime(results.timeElapsed)}
           </div>
-          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+          <div className="text-xs sm:text-sm text-[var(--text-muted)]">
             Time for this attempt
           </div>
         </div>
       </div>
 
       {/* Action Section */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '24px',
-        padding: '24px 0',
-        borderBottom: '1px solid var(--border-color)',
-        flexShrink: 0,
-      }}>
-        <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-6 border-b border-[var(--border-color)]">
+        <span className="text-sm text-[var(--text-primary)]">
           Each attempt gives you a fresh set of random questions.
         </span>
         <button
           onClick={tryAgain}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            background: 'var(--accent)',
-            color: 'white',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            flexShrink: 0,
-          }}
+          className="px-5 py-2.5 border-none bg-[var(--accent)] text-white text-sm cursor-pointer flex items-center gap-2 flex-shrink-0"
         >
           <RotateCcw className="w-4 h-4" />
           Try Again
@@ -170,61 +143,25 @@ export function ResultsScreen({
                     </div>
 
                     {/* Answer Display */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="flex flex-col gap-3">
                       {/* You Answered */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                      }}>
-                        <span style={{
-                          padding: '6px 12px',
-                          background: detail.isCorrect ? '#22c55e' : '#ef4444',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          borderRadius: '4px',
-                          minWidth: '110px',
-                          textAlign: 'center',
-                        }}>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <span className="px-3 py-1.5 rounded text-xs font-semibold text-center sm:min-w-[110px] flex-shrink-0"
+                          style={{ background: detail.isCorrect ? '#22c55e' : '#ef4444', color: 'white' }}>
                           {detail.isCorrect ? 'Correct!' : 'You Answered'}
                         </span>
-                        <span style={{
-                          padding: '10px 16px',
-                          background: 'var(--bg-secondary)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          fontSize: '14px',
-                          color: 'var(--text-primary)',
-                          flex: 1,
-                        }}>
+                        <span className="px-4 py-2.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] flex-1 break-words">
                           <MathText>{detail.userAnswer || '(No answer)'}</MathText>
                         </span>
                       </div>
 
                       {/* Correct Answer (only show if incorrect) */}
                       {!detail.isCorrect && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                        }}>
-                          <span style={{
-                            padding: '6px 12px',
-                            background: 'var(--bg-tertiary)',
-                            color: 'var(--text-primary)',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            borderRadius: '4px',
-                            minWidth: '110px',
-                            textAlign: 'center',
-                          }}>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          <span className="px-3 py-1.5 bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-xs font-semibold rounded text-center sm:min-w-[110px] flex-shrink-0">
                             Correct Answer
                           </span>
-                          <span style={{
-                            fontSize: '14px',
-                            color: 'var(--text-primary)',
-                          }}>
+                          <span className="text-sm text-[var(--text-primary)] break-words">
                             <MathText>{detail.correctAnswer}</MathText>
                           </span>
                         </div>

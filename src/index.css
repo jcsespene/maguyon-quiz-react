@@ -306,3 +306,37 @@ body:has(.results-screen) .main-card {
   font-weight: 300;
   margin-left: 2px;
 }
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  body {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .question-text {
+    font-size: 15px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .input-field {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .drag-item {
+    padding: 10px 12px;
+  }
+}

@@ -14,7 +14,7 @@ function App() {
   // Show loading while checking auth state
   if (auth.isLoading) {
     return (
-      <div className="main-card min-h-screen p-8 flex items-center justify-center">
+      <div className="main-card min-h-screen p-4 sm:p-8 flex items-center justify-center">
         <p className="text-[var(--text-muted)]">Loading...</p>
       </div>
     );
@@ -23,7 +23,7 @@ function App() {
   // Show login screen if not authenticated
   if (!auth.isAuthenticated) {
     return (
-      <div className="main-card min-h-screen p-8">
+      <div className="main-card min-h-screen p-4 sm:p-8">
         <LoginScreen
           onGoogleLogin={auth.loginWithGoogle}
           isDark={theme.isDark}
@@ -34,7 +34,7 @@ function App() {
   }
 
   return (
-    <div className="main-card min-h-screen p-8">
+    <div className="main-card min-h-screen p-4 sm:p-8">
       {quiz.currentScreen === 'start' && (
         <StartScreen
           startQuiz={quiz.startQuiz}
