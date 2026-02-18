@@ -1,18 +1,27 @@
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import type { QuizResults } from '@/types/quiz';
+import type { AdaptiveInfo, QuestionTag } from '@/hooks/useQuiz';
 import { CircularProgress } from '@/components/CircularProgress';
 import { MathText } from '@/components/MathText';
+
+const TAG_STYLES: Record<QuestionTag, { label: string; bg: string; color: string }> = {
+  review:        { label: 'Review',        bg: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' },
+  new:           { label: 'New',           bg: 'rgba(59, 130, 246, 0.12)', color: '#3b82f6' },
+  reinforcement: { label: 'Reinforcement', bg: 'rgba(34, 197, 94, 0.12)', color: '#22c55e' },
+};
 
 interface ResultsScreenProps {
   results: QuizResults;
   tryAgain: () => void;
   returnToStart: () => void;
+  adaptiveInfo?: AdaptiveInfo;
 }
 
 export function ResultsScreen({
   results,
   tryAgain,
   returnToStart,
+  adaptiveInfo,
 }: ResultsScreenProps) {
   const percent = Math.round((results.correct / results.total) * 100);
 
@@ -77,7 +86,9 @@ export function ResultsScreen({
         flexShrink: 0,
       }}>
         <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-          Each attempt gives you a fresh set of random questions.
+          {adaptiveInfo?.isAdaptive
+            ? 'Questions adapted to your skill level.'
+            : 'Each attempt gives you a fresh set of random questions.'}
         </span>
         <button
           onClick={tryAgain}
@@ -145,6 +156,24 @@ export function ResultsScreen({
                           Bonus
                         </span>
                       )}
+                      {!detail.isBonus && adaptiveInfo?.isAdaptive && (() => {
+                        const tag = adaptiveInfo.questionTags.get(i);
+                        if (!tag) return null;
+                        const style = TAG_STYLES[tag];
+                        return (
+                          <span style={{
+                            padding: '3px 8px',
+                            background: style.bg,
+                            color: style.color,
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            borderRadius: '3px',
+                            textTransform: 'uppercase',
+                          }}>
+                            {style.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <span style={{
                       fontSize: '14px',

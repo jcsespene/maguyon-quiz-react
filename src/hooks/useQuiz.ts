@@ -14,12 +14,24 @@ import type {
   ShuffledOption,
 } from '@/types/quiz';
 import { extractUnderlinedWord } from '@/types/quiz';
+import type { QuestionId } from '@/types/srs';
 import { QUESTION_POOL, BONUS_QUESTIONS, QUIZ_CONFIG } from '@/data/questions';
+import { getQuestionId, getInitialDifficulty } from '@/data/questionMeta';
+import { getSRSWeight, useSRS } from './useSRS';
+import { getIRTWeight } from './useIRT';
 import { useProgress } from './useProgress';
 import { useTimer } from './useTimer';
 
 // Extended question type that includes shuffled options for multiple choice
 type QuizQuestion = Question & { _shuffledOptions?: ShuffledOption[] };
+
+// Tag for adaptive feedback on results screen
+export type QuestionTag = 'new' | 'review' | 'reinforcement';
+
+export interface AdaptiveInfo {
+  isAdaptive: boolean;
+  questionTags: Map<number, QuestionTag>;
+}
 
 export function useQuiz(userId: string = 'guest') {
   const [currentScreen, setCurrentScreen] = useState<Screen>('start');
@@ -28,14 +40,32 @@ export function useQuiz(userId: string = 'guest') {
   const [answers, setAnswers] = useState<Map<number, Answer>>(new Map());
   const [results, setResults] = useState<QuizResults | null>(null);
 
+  // Map session question index (0–8) → stable QuestionId
+  const questionIdMapRef = useRef<Map<number, QuestionId>>(new Map());
+  // Tags for adaptive feedback
+  const questionTagsRef = useRef<Map<number, QuestionTag>>(new Map());
+
   // Use a ref to track if we've already submitted
   const hasSubmittedRef = useRef(false);
 
   const {
     progress,
     updateProgress,
-    resetProgress,
+    resetProgress: resetQuizProgress,
   } = useProgress(userId);
+
+  const {
+    adaptiveState,
+    recordSessionResults,
+    resetAdaptiveState,
+    mastery,
+  } = useSRS(userId);
+
+  // Unified reset: clears both quiz progress and adaptive state
+  const resetProgress = useCallback(() => {
+    resetQuizProgress();
+    resetAdaptiveState();
+  }, [resetQuizProgress, resetAdaptiveState]);
 
   const shuffleOptions = useCallback((question: MultipleChoiceQuestion): QuizQuestion => {
     if (!QUIZ_CONFIG.shuffleOptions) {
@@ -89,14 +119,10 @@ export function useQuiz(userId: string = 'guest') {
         const normalizedCorrectWord = q.correctWord.toLowerCase().trim();
         const isUnderlinedWordCorrect = underlinedWord?.toLowerCase().trim() === normalizedCorrectWord;
 
-        // If underlined word is correct, user should type "!"
-        // If underlined word is wrong, user should type the correct word
         if (isUnderlinedWordCorrect) {
-          // Correct answer is "!"
           isCorrect = normalizedUserAnswer === '!';
           correctAnswer = '!';
         } else {
-          // Correct answer is the correct word
           isCorrect = normalizedUserAnswer === normalizedCorrectWord;
           correctAnswer = q.correctWord;
         }
@@ -133,7 +159,6 @@ export function useQuiz(userId: string = 'guest') {
         const q = question as StatementQuestion;
         const userSelection = userAnswer as number[] | null;
 
-        // Helper to format answer display
         const formatAnswer = (nums: number[]): string => {
           if (nums.length === 0) return 'None are correct';
           if (nums.length === q.statements.length) return 'All are correct';
@@ -141,7 +166,6 @@ export function useQuiz(userId: string = 'guest') {
           return `Only Statements ${nums.slice(0, -1).join(', ')} and ${nums[nums.length - 1]} are correct`;
         };
 
-        // Check if arrays match (order doesn't matter)
         const arraysMatch = (a: number[], b: number[]): boolean => {
           if (a.length !== b.length) return false;
           const sortedA = [...a].sort();
@@ -194,10 +218,13 @@ export function useQuiz(userId: string = 'guest') {
     const totalPoints = questionsToSubmit.length * pointsPerQuestion;
     const details: QuizResult[] = [];
 
+    // Collect results for SRS/IRT recording
+    const srsResults: Array<{ questionId: QuestionId; correct: boolean }> = [];
+
     questionsToSubmit.forEach((question, i) => {
       const userAnswer = answersToSubmit.get(i) ?? null;
       const result = checkAnswer(question, userAnswer);
-      const isBonus = i === questionsToSubmit.length - 1; // Last question is bonus
+      const isBonus = i === questionsToSubmit.length - 1;
       const earnedPoints = result.isCorrect ? pointsPerQuestion : 0;
 
       if (result.isCorrect) {
@@ -213,8 +240,11 @@ export function useQuiz(userId: string = 'guest') {
         questionText = (question as { question: string }).question;
       }
 
+      const qId = questionIdMapRef.current.get(i);
+
       details.push({
         question: questionText,
+        questionId: qId,
         userAnswer: result.userAnswerDisplay,
         correctAnswer: result.correctAnswer,
         isCorrect: result.isCorrect,
@@ -222,6 +252,11 @@ export function useQuiz(userId: string = 'guest') {
         isBonus,
         points: earnedPoints,
       });
+
+      // Track for SRS
+      if (qId) {
+        srsResults.push({ questionId: qId, correct: result.isCorrect });
+      }
     });
 
     const quizResults: QuizResults = {
@@ -235,8 +270,14 @@ export function useQuiz(userId: string = 'guest') {
 
     setResults(quizResults);
     updateProgress(correct, questionsToSubmit.length);
+
+    // Record adaptive data (SRS intervals, theta update, difficulty calibration)
+    if (srsResults.length > 0) {
+      recordSessionResults(srsResults);
+    }
+
     setCurrentScreen('results');
-  }, [checkAnswer, updateProgress]);
+  }, [checkAnswer, updateProgress, recordSessionResults]);
 
   // Timer with onTimeUp callback
   const timer = useTimer({
@@ -248,17 +289,19 @@ export function useQuiz(userId: string = 'guest') {
     }, [questions, answers, doSubmitQuiz]),
   });
 
+  // ── Adaptive Question Selection ────────────────────────────────
+
   const startQuiz = useCallback(() => {
     hasSubmittedRef.current = false;
 
-    // Use crypto-grade random for better uniqueness across concurrent users
+    // Crypto-grade random
     const cryptoRandom = () => {
       const array = new Uint32Array(1);
       crypto.getRandomValues(array);
       return array[0] / (0xFFFFFFFF + 1);
     };
 
-    // Fisher-Yates with crypto random
+    // Fisher-Yates with crypto random (for bonus & fallback)
     const cryptoShuffle = <T,>(arr: T[]): T[] => {
       const shuffled = [...arr];
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -268,19 +311,91 @@ export function useQuiz(userId: string = 'guest') {
       return shuffled;
     };
 
-    // Pick 8 random questions from the regular pool
-    const regularCount = QUIZ_CONFIG.questionsPerRound - 1; // 8 regular questions
-    const shuffledPool = cryptoShuffle([...QUESTION_POOL]);
-    const regularQuestions = shuffledPool.slice(0, regularCount);
+    const regularCount = QUIZ_CONFIG.questionsPerRound - 1; // 8 regular
+    const currentSession = adaptiveState.lastSessionNumber + 1;
+    const theta = adaptiveState.student.theta;
 
-    // Pick 1 random bonus question
+    // Build weighted candidates for each question in the regular pool
+    const candidates: Array<{
+      index: number;
+      question: Question;
+      questionId: QuestionId;
+      weight: number;
+      tag: QuestionTag;
+    }> = QUESTION_POOL.map((question, index) => {
+      const qId = getQuestionId(index, false);
+      const questionState = adaptiveState.questions[qId];
+
+      // SRS weight
+      const srsW = getSRSWeight(questionState, currentSession);
+
+      // IRT weight
+      const difficulty = questionState?.difficulty ?? getInitialDifficulty(index, false);
+      const irtW = getIRTWeight(theta, difficulty);
+
+      // Blended weight: 40% SRS + 60% IRT + random jitter
+      const combined = 0.4 * srsW + 0.6 * irtW + cryptoRandom() * 0.15;
+
+      // Determine tag for results screen
+      let tag: QuestionTag = 'new';
+      if (questionState) {
+        if (questionState.consecutiveWrong > 0) {
+          tag = 'review';       // previously got wrong
+        } else if (questionState.attempts.length > 0) {
+          tag = 'reinforcement'; // seen before, got right
+        }
+      }
+
+      return { index, question, questionId: qId, weight: combined, tag };
+    });
+
+    // Weighted random sampling without replacement
+    const selected: typeof candidates = [];
+    const remaining = [...candidates];
+
+    for (let i = 0; i < regularCount && remaining.length > 0; i++) {
+      const totalWeight = remaining.reduce((sum, c) => sum + c.weight, 0);
+      let random = cryptoRandom() * totalWeight;
+      let chosenIdx = 0;
+
+      for (let j = 0; j < remaining.length; j++) {
+        random -= remaining[j].weight;
+        if (random <= 0) {
+          chosenIdx = j;
+          break;
+        }
+      }
+
+      selected.push(remaining[chosenIdx]);
+      remaining.splice(chosenIdx, 1);
+    }
+
+    // Bonus: still pure random from BONUS_QUESTIONS
     const shuffledBonus = cryptoShuffle([...BONUS_QUESTIONS]);
     const bonusQuestion = shuffledBonus[0];
+    const bonusIndex = BONUS_QUESTIONS.indexOf(bonusQuestion);
+    const bonusId = getQuestionId(bonusIndex >= 0 ? bonusIndex : 0, true);
 
-    // Combine: 8 regular + 1 bonus at the end
-    const selectedQuestions: Question[] = [...regularQuestions, bonusQuestion];
+    // Build the session questions and ID map
+    const idMap = new Map<number, QuestionId>();
+    const tagMap = new Map<number, QuestionTag>();
 
-    // Shuffle options for multiple choice questions (also with crypto random)
+    const selectedQuestions: Question[] = selected.map((s, i) => {
+      idMap.set(i, s.questionId);
+      tagMap.set(i, s.tag);
+      return s.question;
+    });
+
+    // Bonus at position 8 (last)
+    idMap.set(selected.length, bonusId);
+    tagMap.set(selected.length, 'new');
+
+    selectedQuestions.push(bonusQuestion);
+
+    questionIdMapRef.current = idMap;
+    questionTagsRef.current = tagMap;
+
+    // Process multiple choice options shuffling
     const processedQuestions: QuizQuestion[] = selectedQuestions.map(q => {
       if (q.type === 'multiple-choice') {
         return shuffleOptions(q);
@@ -295,7 +410,7 @@ export function useQuiz(userId: string = 'guest') {
     timer.reset(QUIZ_CONFIG.timeLimitMinutes * 60);
     timer.start();
     setCurrentScreen('quiz');
-  }, [shuffleOptions, timer]);
+  }, [shuffleOptions, timer, adaptiveState]);
 
   const setAnswer = useCallback((index: number, answer: Answer) => {
     setAnswers(prev => {
@@ -326,7 +441,6 @@ export function useQuiz(userId: string = 'guest') {
   }, [timer]);
 
   const tryAgain = useCallback(() => {
-    // Start a new quiz with fresh random questions
     startQuiz();
   }, [startQuiz]);
 
@@ -337,6 +451,12 @@ export function useQuiz(userId: string = 'guest') {
   const currentAnswer = useMemo(() => {
     return answers.get(currentIndex) ?? null;
   }, [answers, currentIndex]);
+
+  // Build adaptive info for results screen
+  const adaptiveInfo: AdaptiveInfo = useMemo(() => ({
+    isAdaptive: adaptiveState.student.totalSessions >= 3,
+    questionTags: questionTagsRef.current,
+  }), [adaptiveState.student.totalSessions]);
 
   return {
     // Screen state
@@ -372,5 +492,9 @@ export function useQuiz(userId: string = 'guest') {
 
     // Pool info
     totalQuestions: QUESTION_POOL.length,
+
+    // Adaptive / SRS / IRT
+    mastery,
+    adaptiveInfo,
   };
 }

@@ -97,6 +97,7 @@ export interface QuizConfig {
 
 export interface QuizResult {
   question: string;
+  questionId?: string;    // stable ID for SRS/IRT tracking (e.g. "q_42", "b_3")
   userAnswer: string;
   correctAnswer: string;
   isCorrect: boolean;

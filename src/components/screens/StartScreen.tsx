@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { AuthUser } from '@/types/auth';
 import type { QuizProgress } from '@/types/quiz';
+import type { MasterySummary } from '@/types/srs';
 
 // Words semantically similar to "Simulator"
 const TITLE_WORDS = [
@@ -69,6 +70,7 @@ interface StartScreenProps {
   startQuiz: () => void;
   resetProgress: () => void;
   progress: QuizProgress;
+  mastery: MasterySummary | null;
   user: AuthUser | null;
   onLogout: () => void;
   isDark: boolean;
@@ -79,6 +81,7 @@ export function StartScreen({
   startQuiz,
   resetProgress,
   progress,
+  mastery,
   user,
   onLogout,
   isDark,
@@ -245,6 +248,60 @@ export function StartScreen({
           Begin
         </button>
 
+        {/* Mastery indicator — shown after 3+ sessions */}
+        {mastery && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            width: '100%',
+            maxWidth: '260px',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                Mastery
+              </span>
+              <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                {mastery.overallMastery}%
+              </span>
+            </div>
+            {/* Progress bar */}
+            <div style={{
+              width: '100%',
+              height: '4px',
+              background: 'var(--bg-tertiary)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${mastery.overallMastery}%`,
+                height: '100%',
+                background: 'var(--accent)',
+                borderRadius: '2px',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                {mastery.questionsAttempted} / 192 seen
+              </span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                {mastery.abilityLabel}
+              </span>
+            </div>
+          </div>
+        )}
+
         {progress.totalAttempts > 0 && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -256,7 +313,7 @@ export function StartScreen({
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-lg font-medium">Reset Progress?</AlertDialogTitle>
                 <AlertDialogDescription className="text-[var(--text-secondary)] mt-2">
-                  This will clear your best score and attempt count. This cannot be undone.
+                  This will clear your best score, attempt count, and learning history. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="mt-8 flex gap-3">

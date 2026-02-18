@@ -40,6 +40,7 @@ function App() {
           startQuiz={quiz.startQuiz}
           resetProgress={quiz.resetProgress}
           progress={quiz.progress}
+          mastery={quiz.mastery}
           user={auth.user}
           onLogout={auth.logout}
           isDark={theme.isDark}
@@ -67,6 +68,7 @@ function App() {
           results={quiz.results}
           tryAgain={quiz.tryAgain}
           returnToStart={quiz.returnToStart}
+          adaptiveInfo={quiz.adaptiveInfo}
         />
       )}
     </div>
